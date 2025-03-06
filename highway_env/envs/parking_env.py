@@ -138,7 +138,7 @@ class ParkingEnv(AbstractEnv, GoalEnv):
         self._create_road()
         self._create_vehicles()
 
-    def _create_road(self, spots: int = 14) -> None:
+    def _create_road(self, spots: int = 3) -> None:
         """
         Create a road composed of straight adjacent lanes.
 
