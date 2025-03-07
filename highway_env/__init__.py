@@ -83,6 +83,11 @@ def _register_highway_envs():
     )
 
     register(
+        id="parking-v0_Model1",
+        entry_point="highway_env.envs.parking_env:ParkingEnv_Model1",
+    )
+
+    register(
         id="parking-ActionRepeat-v0",
         entry_point="highway_env.envs.parking_env:ParkingEnvActionRepeat",
     )

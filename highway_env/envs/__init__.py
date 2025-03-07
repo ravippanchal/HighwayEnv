@@ -28,6 +28,7 @@ __all__ = [
     "LaneKeepingEnv",
     "MergeEnv",
     "ParkingEnv",
+    "ParkingEnv_Model1",
     "ParkingEnvActionRepeat",
     "ParkingEnvParkedVehicles",
     "RacetrackEnv",
