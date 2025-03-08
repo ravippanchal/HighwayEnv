@@ -94,7 +94,7 @@ def _register_highway_envs():
 
     register(
         id="parking-parked-v0",
-        entry_point="highway_env.envs.parking_env:ParkingEnvParkedVehicles",
+        entry_point="highway_env.envs.parking_env_model1:ParkingEnvParkedVehicles",
     )
 
     # racetrack_env.py
