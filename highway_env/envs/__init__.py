@@ -12,6 +12,7 @@ from highway_env.envs.parking_env import (
     ParkingEnvActionRepeat,
     ParkingEnvParkedVehicles,
 )
+from highway_env.envs.parking_env_model1 import ParkingEnv_Model1
 from highway_env.envs.racetrack_env import RacetrackEnv
 from highway_env.envs.roundabout_env import RoundaboutEnv
 from highway_env.envs.two_way_env import TwoWayEnv
