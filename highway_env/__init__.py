@@ -84,7 +84,7 @@ def _register_highway_envs():
 
     register(
         id="parking-v0_Model1",
-        entry_point="highway_env.envs.parking_env:ParkingEnv_Model1",
+        entry_point="highway_env.envs.parking_env.parking_env_model1:ParkingEnv_Model1",
     )
 
     register(
@@ -94,7 +94,7 @@ def _register_highway_envs():
 
     register(
         id="parking-parked-v0",
-        entry_point="highway_env.envs.parking_env_model1:ParkingEnvParkedVehicles",
+        entry_point="highway_env.envs.parking_env:ParkingEnvParkedVehicles",
     )
 
     # racetrack_env.py
