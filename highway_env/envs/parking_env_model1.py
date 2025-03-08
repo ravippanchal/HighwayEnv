@@ -81,6 +81,8 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
     def __init__(self, config: dict = None, render_mode: str | None = None) -> None:
         super().__init__(config, render_mode)
         self.observation_type_parking = None
+        self.goal_position = np.array([5.0, 2.0])  # Target position
+        self.goal_heading = np.radians(30) 
 
     @classmethod
     def default_config(cls) -> dict:
@@ -97,7 +99,7 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
                 "reward_weights": [1, 0.3, 0, 0, 0.02, 0.02],
                 "success_goal_reward": 0.12,
                 "collision_reward": -5,
-                "steering_range": np.deg2rad(45),
+                "steering_range": np.deg2rad(30),
                 "simulation_frequency": 15,
                 "policy_frequency": 5,
                 "duration": 100,
@@ -223,30 +225,18 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
                 self.road.objects.append(obstacle)
 
     def compute_reward(
-        self,
-        achieved_goal: np.ndarray,
-        desired_goal: np.ndarray,
-        info: dict,
-        p: float = 0.5,
+        self, achieved_goal: np.ndarray, desired_goal: np.ndarray, info: dict
     ) -> float:
-        """
-        Proximity to the goal is rewarded
+        """Encourages the agent to reach the target pre-parking position at a 30° angle."""
+        distance_error = np.linalg.norm(achieved_goal[:2] - self.goal_position)
+        heading_error = abs(achieved_goal[2] - self.goal_heading)
 
-        We use a weighted p-norm
-
-        :param achieved_goal: the goal that was achieved
-        :param desired_goal: the goal that was desired
-        :param dict info: any supplementary information
-        :param p: the Lp^p norm used in the reward. Use p<1 to have high kurtosis for rewards in [0, 1]
-        :return: the corresponding reward
-        """
-        return -np.power(
-            np.dot(
-                np.abs(achieved_goal - desired_goal),
-                np.array(self.config["reward_weights"]),
-            ),
-            p,
-        )
+        if distance_error < 0.5 and heading_error < np.radians(5):
+            return 100  # Reward for achieving pre-parking position
+        elif info.get("collision", False):
+            return -2000  # Heavy penalty for collision
+        else:
+            return -distance_error - heading_error  # Penalize deviation
 
     def _reward(self, action: np.ndarray) -> float:
         obs = self.observation_type_parking.observe()
@@ -263,10 +253,9 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
         return reward
 
     def _is_success(self, achieved_goal: np.ndarray, desired_goal: np.ndarray) -> bool:
-        return (
-            self.compute_reward(achieved_goal, desired_goal, {})
-            > -self.config["success_goal_reward"]
-        )
+        distance_error = np.linalg.norm(achieved_goal[:2] - self.goal_position)
+        heading_error = abs(achieved_goal[2] - self.goal_heading)
+        return distance_error < 0.5 and heading_error < np.radians(5)
 
     def _is_terminated(self) -> bool:
         """The episode is over if the ego vehicle crashed or the goal is reached or time is over."""
