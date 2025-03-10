@@ -79,12 +79,11 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
     }
 
     def __init__(self, config: dict = None, render_mode: str | None = None) -> None:
-        if config is None:
-            config = self.default_config()
-        super().__init__(config, render_mode)
-        self.observation_type_parking = None
         self.goal_position = np.array([5.0, 2.0])  # Target position
         self.goal_heading = np.radians(30)
+        super().__init__(config, render_mode)
+        self.observation_type_parking = None
+
 
         print("Initialized ParkingEnv_Model1: goal_position =", self.goal_position)
 
