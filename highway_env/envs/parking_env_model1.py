@@ -101,8 +101,8 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
                 "simulation_frequency": 15,
                 "policy_frequency": 5,
                 "duration": 100,
-                "screen_width": 300,
-                "screen_height": 200,
+                "screen_width": 600,
+                "screen_height": 300,
                 "centering_position": [0.5, 0.5],
                 "scaling": 7,
                 "controlled_vehicles": 1,
@@ -182,7 +182,7 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
         for i in range(self.config["controlled_vehicles"]):
             x0 = (i - self.config["controlled_vehicles"] // 2) * 10
             vehicle = self.action_type.vehicle_class(
-                self.road, [x0, 0], 2 * np.pi * self.np_random.uniform(), 0
+                self.road, [-10, 0], 0, 0
             )
             vehicle.color = VehicleGraphics.RED
             self.road.vehicles.append(vehicle)
@@ -199,10 +199,11 @@ class ParkingEnv_Model1(AbstractEnv, GoalEnv):
             self.road.objects.append(vehicle.goal)
             empty_spots.remove(lane_index)
 
+        '''
         for spot in empty_spots:
             # Each lane should be numbered
             lane = self.road.network.get_lane(spot)
-
+        '''
 
         # Other vehicles
         for i in range(self.config["vehicles_count"]):

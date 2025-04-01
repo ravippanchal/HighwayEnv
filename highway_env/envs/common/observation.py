@@ -557,6 +557,69 @@ class KinematicsGoalObservation(KinematicObservation):
             ]
         )
         return obs
+    
+class ParkingStateObservation(ObservationType):
+    """
+    Observation class for sub-model 1 that returns a state vector
+    containing four relative Euclidean distances between the vehicle's
+    bounding box and the parking spot's corners, the vehicle's (x, y) 
+    coordinates, and its heading angle.
+    
+    This results in a 7-dimensional continuous state.
+    """
+
+    def __init__(self, env: AbstractEnv, parking_spot: dict, **kwargs):
+        """
+        :param env: The simulation environment.
+        :param parking_spot: A dictionary defining the parking spot.
+            Expected format:
+                {"corners": np.array([[x1,y1], [x2,y2], [x3,y3], [x4,y4]])}
+            where the corners are ordered (e.g., top-left, top-right, bottom-right, bottom-left).
+        """
+        super().__init__(env)
+        self.parking_spot = parking_spot
+
+    def space(self) -> spaces.Space:
+        return spaces.Dict({
+            "distances": spaces.Box(low=0, high=np.inf, shape=(4,), dtype=np.float32),
+            "position": spaces.Box(low=-np.inf, high=np.inf, shape=(2,), dtype=np.float32),
+            "heading": spaces.Box(low=-np.pi, high=np.pi, shape=(1,), dtype=np.float32)
+        })
+
+
+    def _get_vehicle_corners(self, vehicle) -> np.ndarray:
+        """
+        Compute the four corners of the vehicle's rectangle given its position,
+        heading, length, and width.
+        """
+        # Compute half-dimensions
+        half_length = vehicle.LENGTH / 2.0
+        half_width = vehicle.WIDTH / 2.0
+        # Corners in the vehicle's local frame: order: top-left, top-right, bottom-right, bottom-left
+        local_corners = np.array([
+            [-half_length, half_width],
+            [-half_length, -half_width],
+            [half_length, -half_width],
+            [half_length, half_width]
+        ])
+        # Rotation matrix based on the vehicle's heading angle
+        c, s = np.cos(vehicle.heading), np.sin(vehicle.heading)
+        R = np.array([[c, -s], [s, c]])
+        # Rotate and translate the local corners to world coordinates
+        return (local_corners @ R.T) + vehicle.position
+
+    def observe(self) -> dict:
+        vehicle = self.observer_vehicle
+        parking_corners = np.array(self.parking_spot["corners"])
+        vehicle_corners = self._get_vehicle_corners(vehicle)
+        # Compute the four relative Euclidean distances.
+        distances = np.linalg.norm(vehicle_corners - parking_corners, axis=1).astype(np.float32)
+        # Extract the vehicle's (x, y) position.
+        position = np.array(vehicle.position, dtype=np.float32)
+        # The heading angle, expressed as a 1-dimensional array.
+        heading = np.array([vehicle.heading], dtype=np.float32)
+        return {"distances": distances, "position": position, "heading": heading}
+
 
 
 class AttributesObservation(ObservationType):
@@ -777,6 +840,8 @@ def observation_factory(env: AbstractEnv, config: dict) -> ObservationType:
         return OccupancyGridObservation(env, **config)
     elif config["type"] == "KinematicsGoal":
         return KinematicsGoalObservation(env, **config)
+    elif config["type"] == "ParkingState":
+        return ParkingStateObservation(env, **config)
     elif config["type"] == "GrayscaleObservation":
         return GrayscaleObservation(env, **config)
     elif config["type"] == "AttributesObservation":
